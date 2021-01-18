@@ -13,8 +13,9 @@ app.get('/', (request, response) => {
   response.send('Hello!');
 });
 
-app.get('/urls.json', (request, response) => {
-  response.json(urlDatabase);
+app.get('/urls', (request, response) => {
+  const templateVars = { urls: urlDatabase };
+  response.render('urls_index', templateVars);
 });
 
 app.get('/hello', (request, response) => {
@@ -23,13 +24,4 @@ app.get('/hello', (request, response) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
-});
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
- 
-app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
 });
