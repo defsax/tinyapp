@@ -3,6 +3,11 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 3000;
 
+const generateRandomString = function() {
+  return Math.random().toString(36).replace('0.', '').substring(0, 5);
+};
+
+
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended:true}));
 
