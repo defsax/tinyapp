@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/defsax/tinyapp/issues"
   },
-  "homepage": "https://github.com/defsax/tinyapp#readme"
+  "homepage": "https://github.com/defsax/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
