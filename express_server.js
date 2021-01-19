@@ -61,6 +61,12 @@ app.get('/urls/:shortURL', (request, response) => {
   }
 });
 
+app.post('/urls/:shortURL', (request, response) => {
+  urlDatabase[request.params.shortURL] = checkPrefixes(request.body['longURL']);
+  console.log(urlDatabase);
+  response.redirect(`/urls/${request.params.shortURL}`);
+});
+
 app.get('/u/:shortURL', (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined) {
     console.log('Short url doesn\'t exist...');
