@@ -9,9 +9,9 @@ const generateRandomString = function() {
 };
 const checkPrefixes = function(url) {
   //make sure http and www prefixes are present
-  let fixedURL = '';
-  if (!url.includes('www.')) {
-    fixedURL += 'www.' + url;
+  let fixedURL = url;
+  if (!url.includes('www.') && !url.includes('http://')) {
+    fixedURL = 'www.' + fixedURL;
   }
   if (!url.includes('http://'))
     fixedURL = 'http://' + fixedURL;
@@ -71,6 +71,12 @@ app.get('/u/:shortURL', (request, response) => {
     console.log(longURL);
     response.redirect(longURL);
   }
+});
+
+app.post('/urls/:shortURL/delete', (request, response) => {
+  let shortURL = request.params.shortURL;
+  delete urlDatabase[shortURL];
+  response.redirect('/urls');
 });
 
 app.get('*', (request, response) => {
