@@ -27,7 +27,7 @@ const urlDatabase = {
 };
 
 app.get('/', (request, response) => {
-  response.redirect('/urls');
+  response.render('index');
 });
 
 app.get('/urls', (request, response) => {
