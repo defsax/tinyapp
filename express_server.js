@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const app = express();
 const PORT = 8080;
 
@@ -20,10 +21,11 @@ const checkPrefixes = function(url) {
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(morgan('dev'));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.duckduckgo.com"
 };
 
 app.get('/', (request, response) => {
@@ -50,7 +52,7 @@ app.get('/urls/new', (request, response) => {
 
 app.get('/urls/:shortURL', (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined) {
-    console.log('Short url doesn\'t exist...');
+    console.log('Url doesn\'t exist...');
     //redirect to 404
     response.redirect('/404');
   } else {
