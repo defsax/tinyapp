@@ -54,8 +54,14 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.duckduckgo.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "123ID"
+  },
+  "9sm5xK": {
+    longURL: "http://www.duckduckgo.com",
+    userID: "userRandomID"
+  }
 };
 
 //homepage view
