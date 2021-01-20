@@ -80,12 +80,12 @@ app.get('/urls', (request, response) => {
 
 //create a new randomID and add short/long urls to 'database'
 app.post('/urls', (request, response) => {
-  let short = generateRandomString();
-  let long = checkPrefixes(request.body['longURL']);
+  let shortURL = generateRandomString();
+  let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[short] = long;
+  urlDatabase[shortURL] = { longURL, userID: request.cookies['user_id'] };
   console.log('\nURL Database:\n', urlDatabase);
-  response.redirect(`/urls/${short}`);
+  response.redirect(`/urls/${shortURL}`);
 });
 
 //view when we create a new short url
@@ -108,7 +108,7 @@ app.get('/urls/:shortURL', (request, response) => {
   } else {
     const templateVars = {
       shortURL: request.params.shortURL,
-      longURL: urlDatabase[request.params.shortURL],
+      longURL: urlDatabase[request.params.shortURL]['longURL'],
       user: users[request.cookies['user_id']]
     };
 
@@ -116,9 +116,9 @@ app.get('/urls/:shortURL', (request, response) => {
   }
 });
 
-//create a new short url and redirect to /urls/:shortURL
+//edit a long url and redirect to corresponding /urls/:shortURL
 app.post('/urls/:shortURL', (request, response) => {
-  urlDatabase[request.params.shortURL] = checkPrefixes(request.body['longURL']);
+  urlDatabase[request.params.shortURL] = { longURL: checkPrefixes(request.body['longURL']), userID: users[request.cookies['user_id']]};
   response.redirect(`/urls/${request.params.shortURL}`);
 });
 
@@ -181,13 +181,14 @@ app.post('/register', (request, response) => {
 
 //short url redirect to actual longurl site
 app.get('/u/:shortURL', (request, response) => {
+  console.log(request.params.shortURL);
   //check if shorturl exists first
   if (urlDatabase[request.params.shortURL] === undefined) {
     console.log('Short url doesn\'t exist...');
     //redirect to 404
     response.redirect('/404');
   } else {
-    const longURL = urlDatabase[request.params.shortURL];
+    const longURL = urlDatabase[request.params.shortURL]['longURL'];
     console.log(longURL);
     response.redirect(longURL);
   }
