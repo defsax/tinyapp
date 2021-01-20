@@ -58,20 +58,6 @@ app.get('/', (request, response) => {
   response.render('index', { user: users[request.cookies['user_id']] });
 });
 
-//login and store cookie
-app.post('/login', (request, response) => {
-  if (request.body['username']) {
-    response.cookie('username', request.body['username']);
-    response.redirect('/urls');
-  }
-});
-
-//logout and clear cookie
-app.post('/logout', (request, response) => {
-  response.clearCookie('username');
-  response.redirect('/urls');
-});
-
 //url list view. pass all urls in templatevars for listing
 app.get('/urls', (request, response) => {
   const templateVars = {
@@ -123,6 +109,25 @@ app.post('/urls/:shortURL', (request, response) => {
   response.redirect(`/urls/${request.params.shortURL}`);
 });
 
+//login view
+app.get('/login', (request, response) => {
+  response.render('login', { user: users[request.cookies['user_id']] });
+});
+
+//login and store cookie
+app.post('/login', (request, response) => {
+  if (request.body['username']) {
+    response.cookie('username', request.body['username']);
+    response.redirect('/urls');
+  }
+});
+
+//logout and clear cookie
+app.post('/logout', (request, response) => {
+  response.clearCookie('user_id');
+  response.redirect('/urls');
+});
+
 app.get('/register', (request, response)  => {
   response.render('register', { user: users[request.cookies['user_id']] });
 });
@@ -146,10 +151,6 @@ app.post('/register', (request, response) => {
 
     response.redirect('/urls');
   }
-});
-
-app.get('/login', (request, response) => {
-  response.render('login');
 });
 
 //short url redirect to actual longurl site
