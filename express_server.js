@@ -28,9 +28,9 @@ const checkPrefixes = function(url) {
   return fixedURL;
 };
 const checkEmailExist = function(allUsers, email) {
-  for (let userData of Object.values(allUsers)) {
+  for (let [user, userData] of Object.entries(allUsers)) {
     if (userData['email'] === email)
-      return true;
+      return user;
   }
   return false;
 };
@@ -69,8 +69,6 @@ app.get('/urls', (request, response) => {
     urls: urlDatabase,
     user: users[request.cookies['user_id']]
   };
-
-  console.log(users[request.cookies['user_id']]);
   response.render('urls_index', templateVars);
 });
 
@@ -110,7 +108,6 @@ app.get('/urls/:shortURL', (request, response) => {
 //create a new short url and redirect to /urls/:shortURL
 app.post('/urls/:shortURL', (request, response) => {
   urlDatabase[request.params.shortURL] = checkPrefixes(request.body['longURL']);
-  console.log(urlDatabase);
   response.redirect(`/urls/${request.params.shortURL}`);
 });
 
@@ -121,19 +118,29 @@ app.get('/login', (request, response) => {
 
 //login and store cookie
 app.post('/login', (request, response) => {
-  if (request.body['username']) {
-    response.cookie('username', request.body['username']);
-    response.redirect('/urls');
+  //look up user by email
+  let user = checkEmailExist(users, request.body['email']);
+
+  //if user has a value, that user is in the database
+  if (user) {
+    //check if passwords match
+    if (users[user]['password'] === request.body['password']) {
+      response.cookie('user_id', users[user]['id']);
+      response.redirect('/urls');
+    } else {
+      response.status(403).send('Invalid password!');
+
+    }
+  } else {
+    //if email is invalid
+    response.status(403).send('User isn\'t registered!');
   }
-  console.log('post login:', request.body['email']);
-  response.cookie('username', request.body['email']);
-  response.redirect('/urls');
 });
 
 //logout and clear cookie
 app.post('/logout', (request, response) => {
   response.clearCookie('user_id');
-  response.redirect('/urls');
+  response.redirect('/login');
 });
 
 app.get('/register', (request, response)  => {
@@ -146,7 +153,7 @@ app.post('/register', (request, response) => {
     response.status(400).send('No email or password entered!');
     
   //check if new email already exists in database
-  } else if (checkEmailExist(users, request.body['email'])) {
+  } else if (checkEmailExist(users, request.body['email']) !== false) {
     response.status(400).send('Email already registered!');
   } else {
     
