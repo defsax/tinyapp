@@ -1,59 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
-//const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const bcrypt = require('bcrypt');
+
+const { generateRandomString, checkPrefixes, checkEmailExist, getUserURLS } = require('./helpers');
+
 const app = express();
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended:true}));
-//app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(cookieSession({
   name: 'session',
   secret: 'purple-funky-dinosaur'
 }));
-
-//helper functions
-const generateRandomString = function() {
-  return Math.random().toString(36).replace('0.', '').substring(0, 6);
-};
-const checkPrefixes = function(url) {
-  //make sure http and www prefixes are present
-  let fixedURL = url;
-  if (!url.includes('www.') && !url.includes('http://')) {
-    fixedURL = 'www.' + fixedURL;
-  }
-  if (!url.includes('http://'))
-    fixedURL = 'http://' + fixedURL;
-  
-  return fixedURL;
-};
-const checkEmailExist = function(allUsers, email) {
-  for (let [user, userData] of Object.entries(allUsers)) {
-    if (userData['email'] === email)
-      return user;
-  }
-  return false;
-};
-const getUserURLS = function(urls, user) {
-  const filteredURLS = {};
-  for (let [key, value] of Object.entries(urls)) {
-    if (user === value['userID'])
-      filteredURLS[key] = value;
-  }
-  return filteredURLS;
-};
-const isUserURL =  function(url, user) {
-  console.log('url:', url);
-  console.log('user:', user);
-  if (urlDatabase[url]['userID'] === user)
-    return true;
-  return false;
-};
-
 
 const users = {
   "userRandomID": {
@@ -142,8 +104,8 @@ app.get('/urls/:shortURL', (request, response) => {
 
 //edit a long url and redirect to corresponding /urls/:shortURL
 app.post('/urls/:shortURL', (request, response) => {
-  //console.log(request.params.shortURL);
-  if (isUserURL(request.params.shortURL, request.session.user_id)) {
+  //check that shortURL matches userID
+  if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
     console.log(urlDatabase);
     response.redirect(`/urls/${request.params.shortURL}`);
@@ -208,6 +170,7 @@ app.post('/register', (request, response) => {
     users[id] = { id, email, hashedPassword };
     console.log('Users:', users);
 
+    //set cookie
     request.session.user_id = id;
     response.redirect('/urls');
   }
@@ -230,7 +193,8 @@ app.get('/u/:shortURL', (request, response) => {
 
 //delete a shortURL from the urlDatabase and redirect to /urls
 app.post('/urls/:shortURL/delete', (request, response) => {
-  if (isUserURL(request.params.shortURL, request.session.user_id)) {
+  //check that shortURL matches userID
+  if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     let shortURL = request.params.shortURL;
     delete urlDatabase[shortURL];
     response.redirect('/urls');
