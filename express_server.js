@@ -102,6 +102,15 @@ app.post('/urls/:shortURL', (request, response) => {
   response.redirect(`/urls/${request.params.shortURL}`);
 });
 
+app.get('/register', (request, response)  => {
+  response.render('register', {username: request.cookies['username']});
+});
+
+app.post('/register', (request, response) => {
+  console.log(request.body);
+  response.redirect('/urls');
+});
+
 //short url redirect to actual longurl site
 app.get('/u/:shortURL', (request, response) => {
   //check if shorturl exists first
