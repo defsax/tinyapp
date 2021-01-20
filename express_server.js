@@ -27,8 +27,26 @@ const checkPrefixes = function(url) {
   
   return fixedURL;
 };
+const checkEmailExist = function(allUsers, email) {
+  for (let userData of Object.values(allUsers)) {
+    if (userData['email'] === email)
+      return true;
+  }
+  return false;
+};
 
-
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -37,13 +55,15 @@ const urlDatabase = {
 
 //homepage view
 app.get('/', (request, response) => {
-  response.render('index', { username: request.cookies['username'] });
+  response.render('index', { user: users[request.cookies['user_id']] });
 });
 
 //login and store cookie
 app.post('/login', (request, response) => {
-  response.cookie('username', request.body['username']);
-  response.redirect('/urls');
+  if (request.body['username']) {
+    response.cookie('username', request.body['username']);
+    response.redirect('/urls');
+  }
 });
 
 //logout and clear cookie
@@ -56,9 +76,10 @@ app.post('/logout', (request, response) => {
 app.get('/urls', (request, response) => {
   const templateVars = {
     urls: urlDatabase,
-    username: request.cookies['username']
+    user: users[request.cookies['user_id']]
   };
 
+  console.log(users[request.cookies['user_id']]);
   response.render('urls_index', templateVars);
 });
 
@@ -74,7 +95,7 @@ app.post('/urls', (request, response) => {
 
 //view when we create a new short url
 app.get('/urls/new', (request, response) => {
-  response.render('urls_new', { username: request.cookies['username'] });
+  response.render('urls_new', { user: users[request.cookies['user_id']] });
 });
 
 //view for specific long and short url & longurl edit form
@@ -88,7 +109,7 @@ app.get('/urls/:shortURL', (request, response) => {
     const templateVars = {
       shortURL: request.params.shortURL,
       longURL: urlDatabase[request.params.shortURL],
-      username: request.cookies['username']
+      user: users[request.cookies['user_id']]
     };
 
     response.render('urls_show', templateVars);
@@ -103,12 +124,32 @@ app.post('/urls/:shortURL', (request, response) => {
 });
 
 app.get('/register', (request, response)  => {
-  response.render('register', {username: request.cookies['username']});
+  response.render('register', { user: users[request.cookies['user_id']] });
 });
 
 app.post('/register', (request, response) => {
-  console.log(request.body);
-  response.redirect('/urls');
+  //check for empty strings
+  if (!request.body['email'] || !request.body['password']) {
+    response.status(400).send('No email or password entered!');
+    
+  //check if new email already exists in database
+  } else if (checkEmailExist(users, request.body['email'])) {
+    response.status(400).send('Email already registered!');
+  } else {
+    
+    //create new user in user database
+    let id = generateRandomString();
+    let email = request.body['email'];
+    let password = request.body['password'];
+    users[id] = { id, email, password };
+    response.cookie('user_id', id);
+
+    response.redirect('/urls');
+  }
+});
+
+app.get('/login', (request, response) => {
+  response.render('login');
 });
 
 //short url redirect to actual longurl site
@@ -134,12 +175,12 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 //anything that is not defined on the server is a 404
 app.get('*', (request, response) => {
-  response.render('404', { username: request.cookies['username'] });
+  response.render('404', { user: users[request.cookies['user_id']] });
 });
 
 //404 page view
 app.get('/404', (request, response) => {
-  response.render('404', { username: request.cookies['username'] });
+  response.render('404', { user: users[request.cookies['user_id']] });
 });
 
 app.listen(PORT, () => {

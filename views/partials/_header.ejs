@@ -8,13 +8,18 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <!-- <a class="nav-item nav-link" href="/register">Register</a> -->
+      </div>
+
+      <div class="navbar-nav">
         <a class="nav-item nav-link" href="/register">Register</a>
+        <a class="nav-item nav-link" href="/login">Login</a>
       </div>
 
       <!-- div for login logic -->
       <div>
         <!-- two different renders depending if we have cookie set -->
-        <% if (!username) { %> 
+        <% if (!user) { %> 
           <!-- if not, show login form -->
         <form class="form-inline" action="/login" method="POST">
           <input style="margin-right: 1em; padding: .375rem 0px .375rem .15rem" type="text" name="username" placeholder="Username" style="width: 300px">
@@ -23,7 +28,7 @@
         <% } else { %>
           <!-- if we're signed in already, show username and logout button -->
           <form class="form-inline" action="/logout" method="POST">
-            <p style="margin: auto; margin-right: 1em">Logged in as: <%= username %>!</p>
+            <p style="margin: auto; margin-right: 1em">Logged in as: <%= user.email %>!</p>
             <button class="btn btn-outline-dark" type="submit">Logout</button>
           </form>
         <% } %>
