@@ -45,6 +45,11 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
+  },
+  '123ID': {
+    id: '123ID',
+    email: '123@123.com',
+    password: '123'
   }
 };
 
@@ -120,6 +125,9 @@ app.post('/login', (request, response) => {
     response.cookie('username', request.body['username']);
     response.redirect('/urls');
   }
+  console.log('post login:', request.body['email']);
+  response.cookie('username', request.body['email']);
+  response.redirect('/urls');
 });
 
 //logout and clear cookie
