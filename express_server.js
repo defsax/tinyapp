@@ -138,9 +138,11 @@ app.post('/urls/:shortURL', (request, response) => {
   //console.log(request.params.shortURL);
   if (isUserURL(request.params.shortURL, request.cookies['user_id'])) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
+    console.log(urlDatabase);
+    response.redirect(`/urls/${request.params.shortURL}`);
+  } else {
+    response.status(401).send('Access denied.');
   }
-  console.log(urlDatabase);
-  response.redirect(`/urls/${request.params.shortURL}`);
 });
 
 //login view
@@ -220,8 +222,10 @@ app.post('/urls/:shortURL/delete', (request, response) => {
   if (isUserURL(request.params.shortURL, request.cookies['user_id'])) {
     let shortURL = request.params.shortURL;
     delete urlDatabase[shortURL];
+    response.redirect('/urls');
+  } else {
+    response.status(401).send('Access denied.');
   }
-  response.redirect('/urls');
 });
 
 //anything that is not defined on the server is a 404
