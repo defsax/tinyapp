@@ -41,6 +41,10 @@ const getUserURLS = function(urls, user) {
   return filteredURLS;
 };
 const isUserURL =  function(url, user) {
+  console.log('url:', url);
+  console.log('user:', user);
+  if (urlDatabase[url]['userID'] === user)
+    return true;
   return false;
 };
 
@@ -132,8 +136,9 @@ app.get('/urls/:shortURL', (request, response) => {
 //edit a long url and redirect to corresponding /urls/:shortURL
 app.post('/urls/:shortURL', (request, response) => {
   //console.log(request.params.shortURL);
-  console.log(isUserURL(request.params.shortURL, request.cookies['user_id']));
-  urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
+  if (isUserURL(request.params.shortURL, request.cookies['user_id'])) {
+    urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
+  }
   console.log(urlDatabase);
   response.redirect(`/urls/${request.params.shortURL}`);
 });
@@ -212,8 +217,10 @@ app.get('/u/:shortURL', (request, response) => {
 
 //delete a shortURL from the urlDatabase and redirect to /urls
 app.post('/urls/:shortURL/delete', (request, response) => {
-  let shortURL = request.params.shortURL;
-  delete urlDatabase[shortURL];
+  if (isUserURL(request.params.shortURL, request.cookies['user_id'])) {
+    let shortURL = request.params.shortURL;
+    delete urlDatabase[shortURL];
+  }
   response.redirect('/urls');
 });
 
