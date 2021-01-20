@@ -84,7 +84,12 @@ app.post('/urls', (request, response) => {
 
 //view when we create a new short url
 app.get('/urls/new', (request, response) => {
-  response.render('urls_new', { user: users[request.cookies['user_id']] });
+  //if user_id cookie is undefined, user is not logged in
+  if (!request.cookies['user_id']) {
+    response.redirect('/urls');
+  } else {
+    response.render('urls_new', { user: users[request.cookies['user_id']] });
+  }
 });
 
 //view for specific long and short url & longurl edit form
