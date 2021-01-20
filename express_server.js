@@ -10,8 +10,6 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-
-
 //helper functions
 const generateRandomString = function() {
   return Math.random().toString(36).replace('0.', '').substring(0, 6);
@@ -34,6 +32,18 @@ const checkEmailExist = function(allUsers, email) {
   }
   return false;
 };
+const getUserURLS = function(urls, user) {
+  const filteredURLS = {};
+  for (let [key, value] of Object.entries(urls)) {
+    if (user === value['userID'])
+      filteredURLS[key] = value;
+  }
+  return filteredURLS;
+};
+const isUserURL =  function(url, user) {
+  return false;
+};
+
 
 const users = {
   "userRandomID": {
@@ -69,10 +79,13 @@ app.get('/', (request, response) => {
   response.render('index', { user: users[request.cookies['user_id']] });
 });
 
-//url list view. pass all urls in templatevars for listing
+//url list view. pass user's urls in templatevars for listing
 app.get('/urls', (request, response) => {
+  //get only urls specific to user
+  const userURLS = getUserURLS(urlDatabase, request.cookies['user_id']);
+
   const templateVars = {
-    urls: urlDatabase,
+    urls: userURLS,
     user: users[request.cookies['user_id']]
   };
   response.render('urls_index', templateVars);
@@ -83,7 +96,7 @@ app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[shortURL] = { longURL, userID: request.cookies['user_id'] };
+  urlDatabase[shortURL] = { longURL, userID: users[request.cookies['user_id']]['id'] };
   console.log('\nURL Database:\n', urlDatabase);
   response.redirect(`/urls/${shortURL}`);
 });
@@ -118,7 +131,10 @@ app.get('/urls/:shortURL', (request, response) => {
 
 //edit a long url and redirect to corresponding /urls/:shortURL
 app.post('/urls/:shortURL', (request, response) => {
-  urlDatabase[request.params.shortURL] = { longURL: checkPrefixes(request.body['longURL']), userID: users[request.cookies['user_id']]};
+  //console.log(request.params.shortURL);
+  console.log(isUserURL(request.params.shortURL, request.cookies['user_id']));
+  urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
+  console.log(urlDatabase);
   response.redirect(`/urls/${request.params.shortURL}`);
 });
 
