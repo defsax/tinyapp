@@ -104,12 +104,12 @@ app.get('/urls/:shortURL', (request, response) => {
     //redirect to 404
     response.redirect('/404');
   } else {
-    //url exists, now check that url owner belongs to requesting user
-
-    const urlOwnerID = urlDatabase[request.params.shortURL]['userID'];
-
     //make sure user is signed in
     if (request.currentUser) {
+
+      //url exists, now check that url owner belongs to requesting user
+      const urlOwnerID = urlDatabase[request.params.shortURL]['userID'];
+
       if (urlOwnerID === request.currentUser['id']) {
 
         const templateVars = {
@@ -136,8 +136,6 @@ app.put('/urls/:shortURL', (request, response) => {
   if (urlOwnerID === request.currentUser['id']) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
 
-    console.log(urlDatabase);
-    
     response.redirect(`/urls/${request.params.shortURL}`);
   } else {
     response.status(401).send('Access denied.');
@@ -157,8 +155,6 @@ app.post('/login', (request, response) => {
   //if user has a value, that user is in the database
   if (user) {
     //check if passwords match
-    
-    console.log(request.body['password'], users[user]['hashedPassword']);
 
     if (bcrypt.compareSync(request.body['password'], users[user]['hashedPassword'])) {
       request.session['user_id'] = users[user]['id'];
@@ -200,7 +196,6 @@ app.post('/register', (request, response) => {
     const hashedPassword = bcrypt.hashSync(request.body['password'], 10);
 
     users[id] = { id, email, hashedPassword };
-    console.log('Users:', users);
 
     //set cookie
     request.session['user_id'] = id;
@@ -210,7 +205,6 @@ app.post('/register', (request, response) => {
 
 //short url redirect to actual longurl site
 app.get('/u/:shortURL', (request, response) => {
-  console.log(request.params.shortURL);
   //check if shorturl exists first
   if (urlDatabase[request.params.shortURL] === undefined) {
     console.log('Short url doesn\'t exist...');
@@ -218,7 +212,6 @@ app.get('/u/:shortURL', (request, response) => {
     response.redirect('/404');
   } else {
     const longURL = urlDatabase[request.params.shortURL]['longURL'];
-    console.log(longURL);
     response.redirect(longURL);
   }
 });
