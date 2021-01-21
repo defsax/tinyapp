@@ -1,4 +1,5 @@
 const express = require('express');
+const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const morgan = require('morgan');
@@ -16,6 +17,21 @@ app.use(cookieSession({
   name: 'session',
   secret: 'purple-funky-dinosaur'
 }));
+app.use(methodOverride('_method'));
+
+
+// app.use((request, response, next) => {
+
+//   if (request.session.user_id) {
+//     if (users[request.session.user_id] !== undefined)
+//       next(users[request.session.user_id]);
+//   } else {
+//     next();
+//   }
+
+// });
+
+
 
 const users = {
   "userRandomID": {
@@ -103,7 +119,7 @@ app.get('/urls/:shortURL', (request, response) => {
 });
 
 //edit a long url and redirect to corresponding /urls/:shortURL
-app.post('/urls/:shortURL', (request, response) => {
+app.put('/urls/:shortURL', (request, response) => {
   //check that shortURL matches userID
   if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
@@ -119,7 +135,7 @@ app.get('/login', (request, response) => {
   response.render('login', { user: users[request.session.user_id] });
 });
 
-//login and store cookie
+//login user and store cookie
 app.post('/login', (request, response) => {
   //look up user by email
   let user = checkEmailExist(users, request.body['email']);
@@ -129,7 +145,7 @@ app.post('/login', (request, response) => {
     //check if passwords match
     //if (users[user]['password'] === request.body['password'])
     if (bcrypt.compareSync(request.body['password'], users[user]['hashedPassword'])) {
-      request.session.user_id = users[user]['id'];
+      request.session['user_id'] = users[user]['id'];
       response.redirect('/urls');
     } else {
       response.status(403).send('Invalid password!');
@@ -144,7 +160,7 @@ app.post('/login', (request, response) => {
 //logout and clear cookie
 app.post('/logout', (request, response) => {
   // response.clearCookie('user_id');
-  request.session = null;
+  request.session['user_id'] = null;
   response.redirect('/login');
 });
 
@@ -171,7 +187,7 @@ app.post('/register', (request, response) => {
     console.log('Users:', users);
 
     //set cookie
-    request.session.user_id = id;
+    request.session['user_id'] = id;
     response.redirect('/urls');
   }
 });
@@ -192,7 +208,7 @@ app.get('/u/:shortURL', (request, response) => {
 });
 
 //delete a shortURL from the urlDatabase and redirect to /urls
-app.post('/urls/:shortURL/delete', (request, response) => {
+app.delete('/urls/:shortURL', (request, response) => {
   //check that shortURL matches userID
   if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     let shortURL = request.params.shortURL;
@@ -214,5 +230,5 @@ app.get('/404', (request, response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
