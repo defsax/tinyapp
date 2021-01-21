@@ -19,17 +19,14 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 
+//custom middleware to clean up database calls
+app.use((request, response, next) => {
 
-// app.use((request, response, next) => {
+  const user = users[request.session['user_id']];
+  request.currentUser = user;
 
-//   if (request.session.user_id) {
-//     if (users[request.session.user_id] !== undefined)
-//       next(users[request.session.user_id]);
-//   } else {
-//     next();
-//   }
-
-// });
+  next();
+});
 
 
 
@@ -64,8 +61,7 @@ const urlDatabase = {
 
 //homepage view
 app.get('/', (request, response) => {
-  console.log(request.session.user_id);
-  response.render('index', { user: users[request.session.user_id] });
+  response.render('index', { user: request.currentUser });
 });
 
 //url list view. pass user's urls in templatevars for listing
@@ -75,7 +71,7 @@ app.get('/urls', (request, response) => {
 
   const templateVars = {
     urls: userURLS,
-    user: users[request.session.user_id]
+    user: request.currentUser
   };
   response.render('urls_index', templateVars);
 });
@@ -85,18 +81,18 @@ app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[shortURL] = { longURL, userID: users[request.session.user_id]['id'] };
-  console.log('\nURL Database:\n', urlDatabase);
+  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'] };
+  
   response.redirect(`/urls/${shortURL}`);
 });
 
 //view when we create a new short url
 app.get('/urls/new', (request, response) => {
-  //if user_id cookie is undefined, user is not logged in
-  if (!request.session.user_id) {
+  //if user_id cookie in the database is undefined, user is not logged in. redirect to urls
+  if (!request.currentUser) {
     response.redirect('/urls');
   } else {
-    response.render('urls_new', { user: users[request.session.user_id] });
+    response.render('urls_new', { user: request.currentUser });
   }
 });
 
@@ -111,7 +107,7 @@ app.get('/urls/:shortURL', (request, response) => {
     const templateVars = {
       shortURL: request.params.shortURL,
       longURL: urlDatabase[request.params.shortURL]['longURL'],
-      user: users[request.session.user_id]
+      user: request.currentUser
     };
 
     response.render('urls_show', templateVars);
@@ -123,7 +119,9 @@ app.put('/urls/:shortURL', (request, response) => {
   //check that shortURL matches userID
   if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
+
     console.log(urlDatabase);
+    
     response.redirect(`/urls/${request.params.shortURL}`);
   } else {
     response.status(401).send('Access denied.');
@@ -132,7 +130,7 @@ app.put('/urls/:shortURL', (request, response) => {
 
 //login view
 app.get('/login', (request, response) => {
-  response.render('login', { user: users[request.session.user_id] });
+  response.render('login', { user: request.currentUser });
 });
 
 //login user and store cookie
@@ -143,7 +141,9 @@ app.post('/login', (request, response) => {
   //if user has a value, that user is in the database
   if (user) {
     //check if passwords match
-    //if (users[user]['password'] === request.body['password'])
+    
+    console.log(request.body['password'], users[user]['hashedPassword']);
+
     if (bcrypt.compareSync(request.body['password'], users[user]['hashedPassword'])) {
       request.session['user_id'] = users[user]['id'];
       response.redirect('/urls');
@@ -159,13 +159,12 @@ app.post('/login', (request, response) => {
 
 //logout and clear cookie
 app.post('/logout', (request, response) => {
-  // response.clearCookie('user_id');
   request.session['user_id'] = null;
   response.redirect('/login');
 });
 
 app.get('/register', (request, response)  => {
-  response.render('register', { user: users[request.session.user_id] });
+  response.render('register', { user: request.currentUser });
 });
 
 app.post('/register', (request, response) => {
@@ -175,6 +174,7 @@ app.post('/register', (request, response) => {
     
   //check if new email already exists in database
   } else if (checkEmailExist(users, request.body['email']) !== undefined) {
+    // response.status(400).send('Email already registered!');
     response.status(400).send('Email already registered!');
   } else {
     
@@ -209,10 +209,12 @@ app.get('/u/:shortURL', (request, response) => {
 
 //delete a shortURL from the urlDatabase and redirect to /urls
 app.delete('/urls/:shortURL', (request, response) => {
-  //check that shortURL matches userID
+  //check that shortURL ownerID matches userID
+
   if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
     let shortURL = request.params.shortURL;
     delete urlDatabase[shortURL];
+    
     response.redirect('/urls');
   } else {
     response.status(401).send('Access denied.');
@@ -221,12 +223,12 @@ app.delete('/urls/:shortURL', (request, response) => {
 
 //anything that is not defined on the server is a 404
 app.get('*', (request, response) => {
-  response.render('404', { user: users[request.session.user_id] });
+  response.render('404', { user: request.currentUser });
 });
 
 //404 page view
 app.get('/404', (request, response) => {
-  response.render('404', { user: users[request.session.user_id] });
+  response.render('404', { user: request.currentUser });
 });
 
 app.listen(PORT, () => {
