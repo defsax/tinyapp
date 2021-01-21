@@ -50,12 +50,14 @@ const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
     userID: "123ID",
-    visits: 0
+    visits: 0,
+    uVisits: 0
   },
   "9sm5xK": {
     longURL: "http://www.duckduckgo.com",
     userID: "userRandomID",
-    visits: 0
+    visits: 0,
+    uVisits: 0
   }
 };
 
@@ -81,7 +83,7 @@ app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'], visits: 0 };
+  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'], visits: 0, uVisits: 0 };
   
   response.redirect(`/urls/${shortURL}`);
 });
@@ -116,7 +118,8 @@ app.get('/urls/:shortURL', (request, response) => {
           shortURL: request.params.shortURL,
           longURL: urlDatabase[request.params.shortURL]['longURL'],
           user: request.currentUser,
-          visits: urlDatabase[request.params.shortURL]['visits']
+          visits: urlDatabase[request.params.shortURL]['visits'],
+          uVisits: urlDatabase[request.params.shortURL]['uVisits']
         };
 
         response.render('urls_show', templateVars);
@@ -198,7 +201,7 @@ app.post('/register', (request, response) => {
 
     users[id] = { id, email, hashedPassword };
 
-    //set cookie
+    //set cookie and attached information
     request.session['user_id'] = id;
     response.redirect('/urls');
   }
@@ -206,6 +209,11 @@ app.post('/register', (request, response) => {
 
 //short url redirect to actual longurl site
 app.get('/u/:shortURL', (request, response) => {
+  if (!request.session['visited']) {
+    request.session['visited'] = true;
+    urlDatabase[request.params.shortURL]['uVisits']++;
+    console.log(request.session);
+  }
   //check if shorturl exists first
   if (urlDatabase[request.params.shortURL] === undefined) {
     //redirect to 404
