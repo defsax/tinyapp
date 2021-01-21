@@ -28,8 +28,6 @@ app.use((request, response, next) => {
   next();
 });
 
-
-
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -67,7 +65,7 @@ app.get('/', (request, response) => {
 //url list view. pass user's urls in templatevars for listing
 app.get('/urls', (request, response) => {
   //get only urls specific to user
-  const userURLS = getUserURLS(urlDatabase, request.session.user_id);
+  const userURLS = getUserURLS(urlDatabase, request.session['user_id']);
 
   const templateVars = {
     urls: userURLS,
@@ -207,7 +205,6 @@ app.post('/register', (request, response) => {
 app.get('/u/:shortURL', (request, response) => {
   //check if shorturl exists first
   if (urlDatabase[request.params.shortURL] === undefined) {
-    console.log('Short url doesn\'t exist...');
     //redirect to 404
     response.redirect('/404');
   } else {
@@ -220,7 +217,7 @@ app.get('/u/:shortURL', (request, response) => {
 app.delete('/urls/:shortURL', (request, response) => {
   //check that shortURL ownerID matches userID
 
-  if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
+  if (urlDatabase[request.params.shortURL]['userID'] === request.session['user_id']) {
     let shortURL = request.params.shortURL;
     delete urlDatabase[shortURL];
     
