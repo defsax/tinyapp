@@ -49,11 +49,13 @@ const users = {
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
-    userID: "123ID"
+    userID: "123ID",
+    visits: 0
   },
   "9sm5xK": {
     longURL: "http://www.duckduckgo.com",
-    userID: "userRandomID"
+    userID: "userRandomID",
+    visits: 0
   }
 };
 
@@ -79,7 +81,7 @@ app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'] };
+  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'], visits: 0 };
   
   response.redirect(`/urls/${shortURL}`);
 });
@@ -113,7 +115,8 @@ app.get('/urls/:shortURL', (request, response) => {
         const templateVars = {
           shortURL: request.params.shortURL,
           longURL: urlDatabase[request.params.shortURL]['longURL'],
-          user: request.currentUser
+          user: request.currentUser,
+          visits: urlDatabase[request.params.shortURL]['visits']
         };
 
         response.render('urls_show', templateVars);
@@ -209,6 +212,7 @@ app.get('/u/:shortURL', (request, response) => {
     response.redirect('/404');
   } else {
     const longURL = urlDatabase[request.params.shortURL]['longURL'];
+    urlDatabase[request.params.shortURL]['visits']++;
     response.redirect(longURL);
   }
 });
