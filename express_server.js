@@ -104,20 +104,36 @@ app.get('/urls/:shortURL', (request, response) => {
     //redirect to 404
     response.redirect('/404');
   } else {
-    const templateVars = {
-      shortURL: request.params.shortURL,
-      longURL: urlDatabase[request.params.shortURL]['longURL'],
-      user: request.currentUser
-    };
+    //url exists, now check that url owner belongs to requesting user
 
-    response.render('urls_show', templateVars);
+    const urlOwnerID = urlDatabase[request.params.shortURL]['userID'];
+
+    //make sure user is signed in
+    if (request.currentUser) {
+      if (urlOwnerID === request.currentUser['id']) {
+
+        const templateVars = {
+          shortURL: request.params.shortURL,
+          longURL: urlDatabase[request.params.shortURL]['longURL'],
+          user: request.currentUser
+        };
+
+        response.render('urls_show', templateVars);
+      } else {
+        response.status(401).send('Access denied.');
+      }
+    } else {
+      response.redirect('/urls');
+    }
   }
 });
 
 //edit a long url and redirect to corresponding /urls/:shortURL
 app.put('/urls/:shortURL', (request, response) => {
-  //check that shortURL matches userID
-  if (urlDatabase[request.params.shortURL]['userID'] === request.session.user_id) {
+  //check that shortURL owner matches requesting userID
+  const urlOwnerID = urlDatabase[request.params.shortURL]['userID'];
+
+  if (urlOwnerID === request.currentUser['id']) {
     urlDatabase[request.params.shortURL]['longURL'] = checkPrefixes(request.body['longURL']);
 
     console.log(urlDatabase);
