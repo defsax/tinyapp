@@ -50,14 +50,20 @@ const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
     userID: "123ID",
-    visits: 0,
-    uVisits: 0
+    analytics: {
+      visits: 0,
+      uVisits: 0,
+      visitList: []
+    }
   },
   "9sm5xK": {
     longURL: "http://www.duckduckgo.com",
     userID: "userRandomID",
-    visits: 0,
-    uVisits: 0
+    analytics: {
+      visits: 0,
+      uVisits: 0,
+      visitList: []
+    }
   }
 };
 
@@ -83,7 +89,7 @@ app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   let longURL = checkPrefixes(request.body['longURL']);
 
-  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'], visits: 0, uVisits: 0 };
+  urlDatabase[shortURL] = { longURL, userID: request.currentUser['id'], analytics: { visits: 0, uVisits: 0, visitList: [] }};
   
   response.redirect(`/urls/${shortURL}`);
 });
@@ -118,8 +124,9 @@ app.get('/urls/:shortURL', (request, response) => {
           shortURL: request.params.shortURL,
           longURL: urlDatabase[request.params.shortURL]['longURL'],
           user: request.currentUser,
-          visits: urlDatabase[request.params.shortURL]['visits'],
-          uVisits: urlDatabase[request.params.shortURL]['uVisits']
+          visits: urlDatabase[request.params.shortURL]['analytics']['visits'],
+          uVisits: urlDatabase[request.params.shortURL]['analytics']['uVisits'],
+          visitList: urlDatabase[request.params.shortURL]['analytics']['visitList']
         };
 
         response.render('urls_show', templateVars);
@@ -209,18 +216,32 @@ app.post('/register', (request, response) => {
 
 //short url redirect to actual longurl site
 app.get('/u/:shortURL', (request, response) => {
-  if (!request.session['visited']) {
-    request.session['visited'] = true;
-    urlDatabase[request.params.shortURL]['uVisits']++;
-    console.log(request.session);
-  }
-  //check if shorturl exists first
+
+  //check if shorturl exists in the database first
   if (urlDatabase[request.params.shortURL] === undefined) {
     //redirect to 404
     response.redirect('/404');
+  
   } else {
+    //see if unique_visitor cookie property exists yet
+    if (!request.session['unique_visitor']) {
+      //if not, this is a unique visitor
+      //create unique_visitor cooke key and assign it a random id
+      request.session['unique_visitor'] = generateRandomString();
+      urlDatabase[request.params.shortURL]['analytics']['uVisits']++;
+    }
+
+    //increase total visits even if unique_visitor
+    urlDatabase[request.params.shortURL]['analytics']['visits']++;
+    //add items in reverse order for display purposes
+    urlDatabase[request.params.shortURL]['analytics']['visitList'].unshift({
+      //id will be unique visitor id assigned automatically if this is a new visitor
+      id: request.session['unique_visitor'],
+      timeStamp: new Date()
+    });
+    
+    //redirect
     const longURL = urlDatabase[request.params.shortURL]['longURL'];
-    urlDatabase[request.params.shortURL]['visits']++;
     response.redirect(longURL);
   }
 });

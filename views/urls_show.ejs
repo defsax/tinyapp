@@ -9,26 +9,36 @@
 <body>
   <%- include ('partials/_header') %>
   <div class="card text-center">
-      <div class="card-header"></div>
-      <div class="card-body">
+      <div class="card-header">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
-        <p>Analytics:</p>
-        <p class="card-text">Total Visits: <%= visits %></p>
-        <p class="card-text">Unique Visits: <%= uVisits %></p>
       </div>
-
-    <!-- edit url form -->
-    <div class="card-footer text-muted">
-      <p style="font-size: 3em">Edit</p>
-      <form class="form-inline" action="/urls/<%= shortURL %>?_method=PUT" method="POST">
+      
+      <div class="card-body">
+        <p style="font-size: 3em">Edit</p>
+        <form class="form-inline" action="/urls/<%= shortURL %>?_method=PUT" method="POST">
         <div class="form-group mb-2" style="margin:auto;">
           <label for="longURL">New URL:</label>
           <input type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em" autofocus>
           <button class="btn btn-primary" type="submit">Submit</button>
         </div>
       </form>
+      </div>
+
+    <!-- edit url form -->
+    <div class="card-footer text-muted">
+      <h4><b>Analytics:</b></h4>
+      <p class="card-text">Total Visits: <%= visits %></p>
+      <p class="card-text">Unique Visits: <%= uVisits %></p>
+      <p class="card-text"><b>Visit List:</b></p>
+      <ul>
+        <% for(let visit in visitList) { %>
+          <li>uid: <%= visitList[visit]['id'] %> /// timestamp: <%= visitList[visit]['timeStamp'] %></li>
+        <% } %>
+      </ul>
     </div>
+
+
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
