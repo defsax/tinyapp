@@ -20,7 +20,15 @@ describe('#getUserByEmail', function() {
   it('should return a user with valid email', function() {
     const user = checkEmailExist(testUsers, "user@example.com");
     const expectedOutput = "userRandomID";
-    
+
+    // Write your assert statement here
+    assert.equal(user, expectedOutput);
+  });
+
+  it('should return undefined if email isn\'t present in object', function() {
+    const user = checkEmailExist(testUsers, "user@notthere.com");
+    const expectedOutput = undefined;
+
     // Write your assert statement here
     assert.equal(user, expectedOutput);
   });

@@ -158,7 +158,7 @@ app.post('/register', (request, response) => {
     response.status(400).send('No email or password entered!');
     
   //check if new email already exists in database
-  } else if (checkEmailExist(users, request.body['email']) !== false) {
+  } else if (checkEmailExist(users, request.body['email']) !== undefined) {
     response.status(400).send('Email already registered!');
   } else {
     

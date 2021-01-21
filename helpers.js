@@ -16,7 +16,7 @@ const checkEmailExist = function(allUsers, email) {
     if (userData['email'] === email)
       return user;
   }
-  return false;
+  return undefined;
 };
 const getUserURLS = function(urls, user) {
   const filteredURLS = {};
