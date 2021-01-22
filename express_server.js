@@ -120,10 +120,11 @@ app.get('/urls/:shortURL', (request, response) => {
 
       if (urlOwnerID === request.currentUser['id']) {
 
+        //create and pass appropriate information to template
         const templateVars = {
+          user: request.currentUser,
           shortURL: request.params.shortURL,
           longURL: urlDatabase[request.params.shortURL]['longURL'],
-          user: request.currentUser,
           visits: urlDatabase[request.params.shortURL]['analytics']['visits'],
           uVisits: urlDatabase[request.params.shortURL]['analytics']['uVisits'],
           visitList: urlDatabase[request.params.shortURL]['analytics']['visitList']
