@@ -173,7 +173,6 @@ app.post('/login', (request, response) => {
       response.redirect('/urls');
     } else {
       response.status(403).send('Invalid password!');
-
     }
   } else {
     //if email is invalid

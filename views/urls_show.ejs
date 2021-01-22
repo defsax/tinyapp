@@ -31,7 +31,7 @@
       <p class="card-text">Total Visits: <%= visits %></p>
       <p class="card-text">Unique Visits: <%= uVisits %></p>
       <p class="card-text"><b>Visit List:</b></p>
-      <ul>
+      <ul style="list-style: none;">
         <% for(let visit in visitList) { %>
           <li>uid: <%= visitList[visit]['id'] %> /// timestamp: <%= visitList[visit]['timeStamp'] %></li>
         <% } %>
