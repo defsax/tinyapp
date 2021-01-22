@@ -6,7 +6,7 @@ const checkPrefixes = function(url) {
   //make sure http and/or www prefixes are present
   let fixedURL = url;
 
-  if (!url.includes('http://'))
+  if (!url.includes('http://') && !url.includes('https://'))
     fixedURL = 'http://' + fixedURL;
   
   return fixedURL;
